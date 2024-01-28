@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #editor {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="editor" contenteditable="true"></div>
+
+    <script>
+        // You can add more functionality and features here
+        // For simplicity, this example only provides basic editing
+
+        const editor = document.getElementById('editor');
+
+        editor.addEventListener('input', () => {
+            // Trim the content to remove leading and trailing spaces
+            const trimmedContent = editor.innerText.trim();
+            editor.innerText = trimmedContent;
+        });
+    </script>
+</body>
+</html>
