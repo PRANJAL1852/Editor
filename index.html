@@ -3,34 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Editor</title>
+    <title>Pragya English Point (PEP) - Best English Coaching in Rasra</title>
     <style>
-        body {
+        /* General Styling */
+        * {
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background: #f0f0f0;
+            color: #333;
+            overflow-x: hidden;
         }
 
-        #editor {
-            width: 100vw;
+        /* Navigation Bar */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: #2d2d2d;
+            padding: 20px 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 15px 25px;
+            margin: 0 15px;
+            font-size: 18px;
+            font-weight: 500;
+            text-transform: uppercase;
+            border-radius: 25px;
+            transition: background 0.3s, color 0.3s;
+        }
+        nav a:hover {
+            background: #f4a261;
+            color: black;
+        }
+
+        /* Sections */
+        section {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 100px 20px;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Hero Section */
+        #home {
+            background: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center center/cover;
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+        }
+        #logo {
+            width: 200px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            animation: colorShift 4s infinite;
+        }
+        @keyframes colorShift {
+            0% { color: #f4a261; }
+            50% { color: #2d9b7f; }
+            100% { color: #f4a261; }
+        }
+        .tagline {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* About Section */
+        #about {
+            background: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1951&q=80') no-repeat center center/cover;
+            padding: 80px 20px;
+            color: white;
+        }
+        #about h2 {
+            font-size: 3rem;
+            margin-bottom: 40px;
+        }
+        #about p {
+            max-width: 800px;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            text-align: justify;
+            margin-bottom: 20px;
+        }
+        .highlight {
+            background: #f4a261;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: black;
+        }
+
+        /* Courses Section */
+        #courses {
+            background: #2d9b7f;
+            color: white;
+            padding: 80px 20px;
+        }
+        .courses {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .course-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.2);
+            font-size: 1.2rem;
+            text-align: center;
+            transition: transform 0.3s ease;
+            font-weight: bold;
+        }
+        .course-card:hover {
+            transform: scale(1.05);
+            background: #f4a261;
+            color: black;
+        }
+
+        /* Contact Section */
+        #contact {
+            background: url('https://images.unsplash.com/photo-1528747045269-390fe33c19f2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center center/cover;
+            padding: 80px 20px;
+            color: white;
+        }
+        .contact-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        .contact-info p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .map-button button {
+            background: #f4a261;
+            color: black;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .map-button button:hover {
+            background: #ff8c42;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #333;
+            color: white;
+            font-size: 1rem;
+        }
+
+        /* WhatsApp Floating Button */
+        .whatsapp {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #25D366;
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 2rem;
+            cursor: pointer;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
     </style>
 </head>
 <body>
-    <div id="editor" contenteditable="true"></div>
 
+    <!-- Navigation -->
+    <nav>
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#courses">Courses</a>
+        <a href="#contact">Contact</a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="visible">
+        <img id="logo" src="https://raw.githubusercontent.com/PRANJAL1852/Pragya-English-Point-PEP-/refs/heads/main/Pragya%20English%20Point_20250316_215255_0000.jpg" alt="Pragya English Point Logo">
+        <h1>Pragya English Point (PEP)</h1>
+        <p class="tagline">The Best English Coaching in Rasra, UP</p>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+        <h2>About Us</h2>
+        <p>
+            <span class="highlight">Pragya English Point (PEP)</span> is the leading coaching center for <span class="highlight">Academic English</span>, <span class="highlight">Competitive English</span>, and <span class="highlight">Spoken English</span>. Established in <span class="highlight">1995</span>, we have been empowering students with excellent English skills and helping them achieve their academic and professional goals. Our coaching center is open until <span class="highlight">8 PM</span> to accommodate students' schedules.
+        </p>
+    </section>
+
+    <!-- Courses Section -->
+    <section id="courses">
+        <h2>Our Courses</h2>
+        <div class="courses">
+            <div class="course-card">Spoken English</div>
+            <div class="course-card">Competitive English</div>
+            <div class="course-card">M.A. & B.A. (Hindi & English)</div>
+            <div class="course-card">TGT, PGT, NET, JRF</div>
+            <div class="course-card">CUET, CTET, UPTET</div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <h2>Contact Us</h2>
+        <div class="contact-container">
+            <div class="contact-info">
+                <p>📍 Address: RSS Office Road, Rasra, UP, 221712 (Near Deehbaba)</p>
+                <p>📞 Phone: 7275116996, 7619835856</p>
+                <p>🕒 Open: 8 AM - 8 PM</p>
+            </div>
+            <div class="map-button">
+                <button onclick="openMap()">Locate Us on Map</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2025 Pragya English Point. All Rights Reserved.<br>
+        <small>Find us on <a href="https://www.justdial.com/" style="color: #f4a261;">Justdial</a></small>
+    </footer>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/7619835856" class="whatsapp">💬</a>
+
+    <!-- JavaScript for Section Management and Map Redirection -->
     <script>
-        // You can add more functionality and features here
-        // For simplicity, this example only provides basic editing
+        // Section visibility control
+        document.addEventListener("DOMContentLoaded", () => {
+            const sections = document.querySelectorAll("section");
+            const navLinks = document.querySelectorAll("nav a");
 
-        const editor = document.getElementById('editor');
+            // Initialize first section
+            sections[0].classList.add("visible");
 
-        editor.addEventListener('input', () => {
-            // Trim the content to remove leading and trailing spaces
-            const trimmedContent = editor.innerText.trim();
-            editor.innerText = trimmedContent;
+            // Navigation click handler
+            navLinks.forEach(link => {
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const target = document.querySelector(link.getAttribute("href"));
+                    sections.forEach(section => section.classList.remove("visible"));
+                    target.classList.add("visible");
+                });
+            });
         });
+
+        // Function to open the exact location on Google Maps
+        function openMap() {
+            const latitude = 25.855361; // 25°51'19.3"N
+            const longitude = 83.855917; // 83°51'21.3"E
+            const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            window.open(url, "_blank");
+        }
     </script>
+
 </body>
-</html>
+            </html>
