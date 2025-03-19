@@ -3,41 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image & Video Editor</title>
+    <title>Advanced Image & Video Editor</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
             background-color: #f4f4f4;
-            text-align: center;
-            padding: 20px;
         }
         .container {
-            margin: 0 auto;
             max-width: 800px;
-            background-color: white;
+            margin: 50px auto;
+            background-color: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         h1 {
+            text-align: center;
             color: #333;
         }
-        input[type="file"] {
-            margin: 20px;
+        #loginForm, #uploadForm {
+            display: none;
         }
-        #output {
-            margin-top: 20px;
-            max-width: 100%;
-            max-height: 400px;
-            margin-bottom: 20px;
+        input[type="email"], input[type="password"], button {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
-        .tools {
+        .tool-bar {
             margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
         }
         .tool-btn {
-            padding: 10px 20px;
-            margin: 5px;
-            background-color: #007BFF;
+            padding: 10px 15px;
+            background-color: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
@@ -46,111 +53,194 @@
         .tool-btn:hover {
             background-color: #0056b3;
         }
-        #downloadBtn {
-            background-color: #28a745;
+        #outputImage, #outputVideo {
+            max-width: 100%;
+            max-height: 400px;
+            margin-top: 20px;
         }
-        #downloadBtn:hover {
-            background-color: #218838;
+        #downloadBtn {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Image & Video Editor</h1>
-        
-        <input type="file" id="fileInput" accept="image/*,video/*">
-        <div class="tools">
-            <button class="tool-btn" id="rotateBtn">Rotate 90°</button>
-            <button class="tool-btn" id="flipBtn">Flip Horizontal</button>
-            <button class="tool-btn" id="downloadBtn" style="display:none;">Download</button>
-        </div>
 
-        <div id="outputContainer">
-            <img id="output" style="display:none;">
-            <video id="videoOutput" style="display:none;" controls></video>
-        </div>
+<div class="container">
+    <h1>Image & Video Editor</h1>
 
-        <script>
-            const fileInput = document.getElementById('fileInput');
-            const outputImage = document.getElementById('output');
-            const outputVideo = document.getElementById('videoOutput');
-            const downloadBtn = document.getElementById('downloadBtn');
-            const rotateBtn = document.getElementById('rotateBtn');
-            const flipBtn = document.getElementById('flipBtn');
-
-            let currentImage = null;
-            let currentVideo = null;
-            let rotation = 0;
-            let flip = false;
-
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    if (file.type.startsWith('image/')) {
-                        outputImage.src = event.target.result;
-                        outputImage.style.display = 'block';
-                        outputVideo.style.display = 'none';
-                        currentImage = new Image();
-                        currentImage.src = event.target.result;
-                    } else if (file.type.startsWith('video/')) {
-                        outputVideo.src = event.target.result;
-                        outputVideo.style.display = 'block';
-                        outputImage.style.display = 'none';
-                        currentVideo = document.createElement('video');
-                        currentVideo.src = event.target.result;
-                        currentVideo.controls = true;
-                    }
-                    downloadBtn.style.display = 'inline-block';
-                };
-                reader.readAsDataURL(file);
-            });
-
-            rotateBtn.addEventListener('click', () => {
-                if (currentImage) {
-                    rotation += 90;
-                    outputImage.style.transform = `rotate(${rotation}deg)`;
-                } else if (currentVideo) {
-                    currentVideo.style.transform = `rotate(${rotation}deg)`;
-                    rotation += 90;
-                }
-            });
-
-            flipBtn.addEventListener('click', () => {
-                flip = !flip;
-                const flipValue = flip ? 'scaleX(-1)' : 'scaleX(1)';
-                if (currentImage) {
-                    outputImage.style.transform = flipValue;
-                } else if (currentVideo) {
-                    currentVideo.style.transform = flipValue;
-                }
-            });
-
-            downloadBtn.addEventListener('click', () => {
-                if (currentImage) {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = currentImage.width;
-                    canvas.height = currentImage.height;
-                    ctx.translate(canvas.width / 2, canvas.height / 2);
-                    ctx.rotate((rotation * Math.PI) / 180);
-                    if (flip) ctx.scale(-1, 1);
-                    ctx.drawImage(currentImage, -currentImage.width / 2, -currentImage.height / 2);
-                    const dataUrl = canvas.toDataURL('image/png');
-                    const link = document.createElement('a');
-                    link.href = dataUrl;
-                    link.download = 'edited-image.png';
-                    link.click();
-                } else if (currentVideo) {
-                    const link = document.createElement('a');
-                    link.href = currentVideo.src;
-                    link.download = 'edited-video.mp4';
-                    link.click();
-                }
-            });
-        </script>
+    <!-- Login Form -->
+    <div id="loginForm">
+        <h2>Sign In</h2>
+        <input type="email" id="email" placeholder="Enter email" required>
+        <input type="password" id="password" placeholder="Enter password" required>
+        <button onclick="signIn()">Sign In</button>
+        <button onclick="signUp()">Sign Up</button>
+        <button id="googleSignInBtn">Sign in with Google</button>
     </div>
+
+    <!-- Upload Form -->
+    <div id="uploadForm">
+        <input type="file" id="fileInput" accept="image/*,video/*">
+        <div class="tool-bar">
+            <button class="tool-btn" id="rotate">Rotate 90°</button>
+            <button class="tool-btn" id="brightness">Adjust Brightness</button>
+            <button class="tool-btn" id="applyFilter">Apply Filter</button>
+        </div>
+        <div id="outputContainer">
+            <img id="outputImage" style="display:none;">
+            <video id="outputVideo" style="display:none;" controls></video>
+        </div>
+        <button id="downloadBtn">Download</button>
+    </div>
+
+</div>
+
+<script>
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyD0kVGfM-yrNmc_hRU91zJrd8GUt9qlD-I",
+  authDomain: "image-video-editor-1234.firebaseapp.com",
+  projectId: "image-video-editor-1234",
+  storageBucket: "image-video-editor-1234.appspot.com",
+  messagingSenderId: "999999999999",
+  appId: "1:999999999999:web:abc1234567d8fgh9ijkl",
+  measurementId: "G-123ABC456"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const storage = firebase.storage();
+const firestore = firebase.firestore();
+
+// Track user state
+let user = null;
+
+// Sign in with Google
+document.getElementById('googleSignInBtn').addEventListener('click', function() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).then(result => {
+        user = result.user;
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('uploadForm').style.display = 'block';
+    }).catch(error => {
+        console.error(error);
+    });
+});
+
+// Sign in with email/password
+function signIn() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then(result => {
+            user = result.user;
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('uploadForm').style.display = 'block';
+        })
+        .catch(error => {
+            console.error(error.message);
+        });
+}
+
+// Sign up with email/password
+function signUp() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    auth.createUserWithEmailAndPassword(email, password)
+        .then(result => {
+            user = result.user;
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('uploadForm').style.display = 'block';
+        })
+        .catch(error => {
+            console.error(error.message);
+        });
+}
+
+// Handle file input
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            if (file.type.startsWith('image/')) {
+                document.getElementById('outputImage').src = event.target.result;
+                document.getElementById('outputImage').style.display = 'block';
+                document.getElementById('outputVideo').style.display = 'none';
+            } else if (file.type.startsWith('video/')) {
+                document.getElementById('outputVideo').src = event.target.result;
+                document.getElementById('outputVideo').style.display = 'block';
+                document.getElementById('outputImage').style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
+        document.getElementById('downloadBtn').style.display = 'inline-block';
+    }
+});
+
+// Basic Image Rotation (90 degrees)
+document.getElementById('rotate').addEventListener('click', function() {
+    const img = document.getElementById('outputImage');
+    const video = document.getElementById('outputVideo');
+    if (img.style.display !== 'none') {
+        img.style.transform = (img.style.transform === 'rotate(90deg)') ? 'rotate(0deg)' : 'rotate(90deg)';
+    }
+    if (video.style.display !== 'none') {
+        video.style.transform = (video.style.transform === 'rotate(90deg)') ? 'rotate(0deg)' : 'rotate(90deg)';
+    }
+});
+
+// Adjust Brightness
+document.getElementById('brightness').addEventListener('click', function() {
+    const img = document.getElementById('outputImage');
+    const video = document.getElementById('outputVideo');
+    if (img.style.display !== 'none') {
+        img.style.filter = (img.style.filter === 'brightness(1.5)') ? 'brightness(1)' : 'brightness(1.5)';
+    }
+    if (video.style.display !== 'none') {
+        video.style.filter = (video.style.filter === 'brightness(1.5)') ? 'brightness(1)' : 'brightness(1.5)';
+    }
+});
+
+// Apply a simple filter
+document.getElementById('applyFilter').addEventListener('click', function() {
+    const img = document.getElementById('outputImage');
+    const video = document.getElementById('outputVideo');
+    if (img.style.display !== 'none') {
+        img.style.filter = 'sepia(1)';
+    }
+    if (video.style.display !== 'none') {
+        video.style.filter = 'sepia(1)';
+    }
+});
+
+// Download the edited file
+document.getElementById('downloadBtn').addEventListener('click', function() {
+    const img = document.getElementById('outputImage');
+    const video = document.getElementById('outputVideo');
+    if (img.style.display !== 'none') {
+        const a = document.createElement('a');
+        a.href = img.src;
+        a.download = 'edited_image.png';
+        a.click();
+    }
+    if (video.style.display !== 'none') {
+        const a = document.createElement('a');
+        a.href = video.src;
+        a.download = 'edited_video.mp4';
+        a.click();
+    }
+});
+</script>
+
 </body>
 </html>
