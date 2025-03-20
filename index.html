@@ -10,20 +10,20 @@
         .container { height: 100vh; display: flex; flex-direction: column; animation: bgPulse 8s infinite alternate; }
         @keyframes bgPulse { 0% { background: linear-gradient(135deg, #ff4e50, #f9d423, #4facfe); } 50% { background: linear-gradient(135deg, #00dbde, #fc00ff, #82ff47); } 100% { background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fad0c4); } }
         .media-container { flex: 1; display: flex; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.4); margin: 5px; border-radius: 15px; position: relative; }
-        canvas, video { width: 100%; height: auto; max-height: 70vh; object-fit: contain; border-radius: 10px; transition: transform 0.3s ease; }
-        canvas:hover, video:hover { transform: scale(1.03); }
+        canvas, video { width: 100%; height: auto; max-height: 70vh; object-fit: contain; border-radius: 10px; transition: transform 0.2s ease; }
+        canvas:hover, video:hover { transform: scale(1.02); }
         .top-bar { position: fixed; top: 0; width: 100%; background: rgba(255, 255, 255, 0.15); padding: 5px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(8px); z-index: 10; }
         .top-bar input[type="file"] { padding: 5px; background: linear-gradient(45deg, #ff9a9e, #fad0c4); border-radius: 8px; font-size: 12px; }
         .controls { display: flex; gap: 5px; }
-        .controls button, .controls select { padding: 5px 10px; background: linear-gradient(45deg, #4facfe, #00f2fe); border: none; color: #fff; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; }
-        .controls button:hover { background: linear-gradient(45deg, #00f2fe, #4facfe); transform: scale(1.05); }
+        .controls button, .controls select { padding: 5px 10px; background: linear-gradient(45deg, #4facfe, #00f2fe); border: none; color: #fff; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; transition: background 0.2s ease; }
+        .controls button:hover { background: linear-gradient(45deg, #00f2fe, #4facfe); }
         .navbar { position: fixed; bottom: 0; width: 100%; background: rgba(255, 255, 255, 0.1); padding: 10px; display: flex; overflow-x: auto; gap: 8px; border-radius: 15px 15px 0 0; backdrop-filter: blur(10px); box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.2); }
-        .tool-btn { padding: 8px 15px; background: linear-gradient(45deg, #fc00ff, #00dbde); border: none; color: #fff; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; white-space: nowrap; }
-        .tool-btn:hover { background: linear-gradient(45deg, #00dbde, #fc00ff); transform: scale(1.1); box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        .tool-btn { padding: 8px 15px; background: linear-gradient(45deg, #fc00ff, #00dbde); border: none; color: #fff; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: background 0.2s ease; text-transform: uppercase; white-space: nowrap; }
+        .tool-btn:hover { background: linear-gradient(45deg, #00dbde, #fc00ff); }
         .slider { display: none; position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 10px; width: 90%; max-width: 300px; text-align: center; backdrop-filter: blur(5px); z-index: 5; }
         .slider label { font-size: 12px; color: #fff; margin-bottom: 5px; display: block; }
         .slider input[type="range"] { width: 100%; accent-color: #fc00ff; }
-        .text-overlay { position: absolute; cursor: move; padding: 5px; background: rgba(0, 0, 0, 0.6); border-radius: 5px; color: #fff; font-size: 16px; z-index: 2; box-shadow: 0 0 8px rgba(255, 255, 255, 0.3); }
+        .text-overlay { position: absolute; cursor: move; padding: 5px; background: rgba(0, 0, 0, 0.6); border-radius: 5px; color: #fff; font-size: 16px; z-index: 2; }
         @media (max-width: 600px) { .navbar { padding: 5px; gap: 5px; } .tool-btn { padding: 6px 12px; font-size: 10px; } .top-bar { padding: 3px; } .controls button, .controls select { padding: 4px 8px; font-size: 10px; } }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -47,7 +47,7 @@
         <div class="media-container">
             <canvas id="canvas" style="display: none;"></canvas>
             <video id="video" controls style="display: none;"></video>
-            <div class="slider" id="slider"><label id="sliderLabel"></label><input type="range" id="range" oninput="applySlider(this.dataset.tool, this.value)"></div>
+            <div class="slider" id="slider"><label id="sliderLabel"></label><input type="range" id="range" oninput="debounce(() => applySlider(this.dataset.tool, this.value), 50)"></div>
         </div>
         <div class="navbar">
             <!-- Image Tools -->
@@ -96,7 +96,16 @@
 
     <script>
         const canvas = document.getElementById('canvas'), video = document.getElementById('video'), ctx = canvas.getContext('2d');
-        let mediaType = null, img = new Image(), history = [], currentStep = -1, textOverlays = [];
+        let mediaType = null, img = new Image(), history = [], currentStep = -1, textOverlays = [], isProcessing = false;
+
+        // Debounce Function for Smoothness
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
 
         // Load Media
         document.getElementById('mediaUpload').addEventListener('change', (e) => {
@@ -113,6 +122,7 @@
 
         // Slider Handling
         function showSlider(tool, label, min, max, value) {
+            if (isProcessing) return;
             const slider = document.getElementById('slider'), range = document.getElementById('range');
             document.getElementById('sliderLabel').textContent = `${label}: ${value}%`;
             slider.style.display = 'block'; range.dataset.tool = tool;
@@ -121,32 +131,77 @@
         }
 
         function applySlider(tool, value) {
-            if (mediaType === 'image') {
-                if (tool === 'brightness') { ctx.filter = `brightness(${value}%)`; redrawCanvas(); saveState(); }
-                if (tool === 'saturation') { ctx.filter = `saturate(${value}%)`; redrawCanvas(); saveState(); }
-                if (tool === 'crop') { const scale = value / 100; canvas.width = img.width * scale; canvas.height = img.height * scale; redrawCanvas(); saveState(); }
-                if (tool === 'resize') { const scale = value / 100; canvas.width = img.width * scale; canvas.height = img.height * scale; redrawCanvas(); saveState(); }
-                if (tool === 'opacity') { ctx.globalAlpha = value / 100; redrawCanvas(); ctx.globalAlpha = 1; saveState(); }
-            } else if (mediaType === 'video') {
-                if (tool === 'speed') { video.playbackRate = value / 100; saveState(); }
-                if (tool === 'volume') { video.volume = value / 100; saveState(); }
-                if (tool === 'vCrop') { const scale = value / 100; video.style.width = `${video.videoWidth * scale}px`; video.style.height = `${video.videoHeight * scale}px`; saveState(); }
-                if (tool === 'vBrightness') { video.style.filter = `brightness(${value}%)`; saveState(); }
-            }
+            if (isProcessing) return;
+            isProcessing = true;
+            requestAnimationFrame(() => {
+                if (mediaType === 'image') {
+                    if (tool === 'brightness') { ctx.filter = `brightness(${value}%)`; redrawCanvas(); }
+                    if (tool === 'saturation') { ctx.filter = `saturate(${value}%)`; redrawCanvas(); }
+                    if (tool === 'crop') { const scale = value / 100; canvas.width = img.width * scale; canvas.height = img.height * scale; redrawCanvas(); }
+                    if (tool === 'resize') { const scale = value / 100; canvas.width = img.width * scale; canvas.height = img.height * scale; redrawCanvas(); }
+                    if (tool === 'opacity') { ctx.globalAlpha = value / 100; redrawCanvas(); ctx.globalAlpha = 1; }
+                    saveState();
+                } else if (mediaType === 'video') {
+                    if (tool === 'speed') { video.playbackRate = value / 100; }
+                    if (tool === 'volume') { video.volume = value / 100; }
+                    if (tool === 'vCrop') { const scale = value / 100; video.style.width = `${video.videoWidth * scale}px`; video.style.height = `${video.videoHeight * scale}px`; }
+                    if (tool === 'vBrightness') { video.style.filter = `brightness(${value}%)`; }
+                    saveState();
+                }
+                isProcessing = false;
+            });
         }
 
         // Image Tools
-        function applyFilter(filter) { if (mediaType === 'image') { ctx.filter = `${filter}(100%)`; redrawCanvas(); saveState(); } }
-        function rotate(deg) { if (mediaType === 'image') { ctx.save(); ctx.translate(canvas.width / 2, canvas.height / 2); ctx.rotate(deg * Math.PI / 180); ctx.translate(-canvas.width / 2, -canvas.height / 2); redrawCanvas(); ctx.restore(); saveState(); } }
-        function flip(direction) { if (mediaType === 'image') { ctx.save(); ctx.scale(direction === 'horizontal' ? -1 : 1, direction === 'vertical' ? -1 : 1); ctx.drawImage(img, direction === 'horizontal' ? -canvas.width : 0, direction === 'vertical' ? -canvas.height : 0); redrawText(); ctx.restore(); saveState(); } }
+        function applyFilter(filter) {
+            if (isProcessing || mediaType !== 'image') return;
+            isProcessing = true;
+            requestAnimationFrame(() => {
+                ctx.filter = filter === 'blur' ? 'blur(5px)' : `${filter}(100%)`;
+                redrawCanvas();
+                saveState();
+                isProcessing = false;
+            });
+        }
+
+        function rotate(deg) {
+            if (isProcessing || mediaType !== 'image') return;
+            isProcessing = true;
+            requestAnimationFrame(() => {
+                ctx.save(); ctx.translate(canvas.width / 2, canvas.height / 2); ctx.rotate(deg * Math.PI / 180); ctx.translate(-canvas.width / 2, -canvas.height / 2);
+                redrawCanvas(); ctx.restore(); saveState();
+                isProcessing = false;
+            });
+        }
+
+        function flip(direction) {
+            if (isProcessing || mediaType !== 'image') return;
+            isProcessing = true;
+            requestAnimationFrame(() => {
+                ctx.save(); ctx.scale(direction === 'horizontal' ? -1 : 1, direction === 'vertical' ? -1 : 1);
+                ctx.drawImage(img, direction === 'horizontal' ? -canvas.width : 0, direction === 'vertical' ? -canvas.height : 0);
+                redrawText(); ctx.restore(); saveState();
+                isProcessing = false;
+            });
+        }
+
         function addText() {
-            if (mediaType !== 'image') return;
+            if (isProcessing || mediaType !== 'image') return;
             const text = prompt('Enter text:', 'Text') || 'Text';
             const overlay = { text, x: 20, y: 40 };
             textOverlays.push(overlay); redrawCanvas(); makeTextDraggable(overlay); saveState();
         }
-        function redrawCanvas() { ctx.drawImage(img, 0, 0); redrawText(); }
-        function redrawText() { textOverlays.forEach(o => { ctx.font = '20px Poppins'; ctx.fillStyle = '#fff'; ctx.fillText(o.text, o.x, o.y); }); }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            redrawText();
+        }
+
+        function redrawText() {
+            textOverlays.forEach(o => { ctx.font = '20px Poppins'; ctx.fillStyle = '#fff'; ctx.fillText(o.text, o.x, o.y); });
+        }
+
         function makeTextDraggable(overlay) {
             const div = document.createElement('div');
             div.className = 'text-overlay'; div.textContent = overlay.text;
@@ -168,46 +223,117 @@
                     redrawCanvas();
                 }
             };
-            document.ontouchend = document.onmouseup = () => { isDragging = false; saveState(); };
+            document.ontouchend = document.onmouseup = () => { if (isDragging) { isDragging = false; saveState(); } };
         }
-        function sharpen() { if (mediaType === 'image') { ctx.filter = 'contrast(150%)'; redrawCanvas(); saveState(); } }
-        function addBorder() { if (mediaType === 'image') { ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.strokeRect(0, 0, canvas.width, canvas.height); redrawText(); saveState(); } }
-        function vignette() { if (mediaType === 'image') { ctx.filter = 'brightness(50%) contrast(120%)'; redrawCanvas(); saveState(); } }
-        function posterize() { if (mediaType === 'image') { ctx.filter = 'contrast(200%) brightness(80%)'; redrawCanvas(); saveState(); } }
-        function noise() { if (mediaType === 'image') { ctx.filter = 'contrast(110%) brightness(90%)'; redrawCanvas(); saveState(); } }
-        function pixelate() { if (mediaType === 'image') { ctx.imageSmoothingEnabled = false; ctx.drawImage(img, 0, 0, canvas.width / 10, canvas.height / 10); ctx.drawImage(canvas, 0, 0, canvas.width / 10, canvas.height / 10, 0, 0, canvas.width, canvas.height); redrawText(); saveState(); } }
-        function glow() { if (mediaType === 'image') { ctx.filter = 'brightness(120%) blur(1px)'; redrawCanvas(); saveState(); } }
-        function cartoon() { if (mediaType === 'image') { ctx.filter = 'contrast(150%) saturate(200%)'; redrawCanvas(); saveState(); } }
-        function vintage() { if (mediaType === 'image') { ctx.filter = 'sepia(50%) contrast(90%)'; redrawCanvas(); saveState(); } }
+
+        function sharpen() { applyFilter('contrast'); }
+        function addBorder() {
+            if (isProcessing || mediaType !== 'image') return;
+            isProcessing = true;
+            requestAnimationFrame(() => {
+                redrawCanvas(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.strokeRect(0, 0, canvas.width, canvas.height); saveState();
+                isProcessing = false;
+            });
+        }
+        function vignette() { applyFilter('brightness(50%) contrast(120%)'); }
+        function posterize() { applyFilter('contrast(200%) brightness(80%)'); }
+        function noise() { applyFilter('contrast(110%) brightness(90%)'); }
+        function pixelate() {
+            if (isProcessing || mediaType !== 'image') return;
+            isProcessing = true;
+            requestAnimationFrame(() => {
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(img, 0, 0, canvas.width / 10, canvas.height / 10);
+                ctx.drawImage(canvas, 0, 0, canvas.width / 10, canvas.height / 10, 0, 0, canvas.width, canvas.height);
+                redrawText(); saveState();
+                isProcessing = false;
+            });
+        }
+        function glow() { applyFilter('brightness(120%) blur(1px)'); }
+        function cartoon() { applyFilter('contrast(150%) saturate(200%)'); }
+        function vintage() { applyFilter('sepia(50%) contrast(90%)'); }
 
         // Video Tools
-        function applyVideoFilter(filter) { if (mediaType === 'video') { video.style.filter = `${filter}(100%)`; saveState(); } }
+        function applyVideoFilter(filter) {
+            if (isProcessing || mediaType !== 'video') return;
+            isProcessing = true;
+            requestAnimationFrame(() => {
+                video.style.filter = filter === 'blur' ? 'blur(5px)' : `${filter}(100%)`; saveState();
+                isProcessing = false;
+            });
+        }
         function muteVideo() { if (mediaType === 'video') { video.muted = !video.muted; saveState(); } }
         function rotateVideo(deg) { if (mediaType === 'video') { video.style.transform = `rotate(${deg}deg)`; saveState(); } }
         function loopVideo() { if (mediaType === 'video') { video.loop = !video.loop; saveState(); } }
         function reverseVideo() { if (mediaType === 'video') { video.playbackRate = -1; saveState(); } }
         function fadeIn() { if (mediaType === 'video') { video.style.transition = 'opacity 1s'; video.style.opacity = 1; saveState(); } }
         function fadeOut() { if (mediaType === 'video') { video.style.transition = 'opacity 1s'; video.style.opacity = 0.5; saveState(); } }
-        function cinematic() { if (mediaType === 'video') { video.style.filter = 'contrast(130%) brightness(90%)'; saveState(); } }
-        function retroVideo() { if (mediaType === 'video') { video.style.filter = 'sepia(50%)'; saveState(); } }
+        function cinematic() { applyVideoFilter('contrast(130%) brightness(90%)'); }
+        function retroVideo() { applyVideoFilter('sepia(50%)'); }
 
         // Save, Undo, Redo, Reset
         function saveMedia() {
+            if (isProcessing) return;
             const format = document.getElementById('saveFormat').value;
             if (mediaType === 'image') { const link = document.createElement('a'); link.download = `edit.${format}`; link.href = canvas.toDataURL(`image/${format}`); link.click(); }
             else alert('Video saving requires manual download.');
         }
-        function saveState() { if (mediaType === 'image') { history = history.slice(0, currentStep + 1); history.push({ data: canvas.toDataURL(), textOverlays: [...textOverlays] }); currentStep++; } localStorage.setItem('editorState', JSON.stringify({ history, currentStep, mediaType })); }
-        function loadState(state) { 
-            history = state.history; currentStep = state.currentStep; mediaType = state.mediaType; 
-            if (mediaType === 'image' && history.length) { 
-                const imgState = new Image(); imgState.src = history[currentStep].data; 
-                imgState.onload = () => { canvas.width = imgState.width; canvas.height = imgState.height; ctx.drawImage(imgState, 0, 0); textOverlays = history[currentStep].textOverlays; textOverlays.forEach(makeTextDraggable); canvas.style.display = 'block'; }; 
-            } 
+
+        function saveState() {
+            if (mediaType === 'image' && !isProcessing) {
+                history = history.slice(0, currentStep + 1);
+                history.push({ data: canvas.toDataURL(), textOverlays: [...textOverlays] });
+                currentStep++;
+                if (history.length > 10) history.shift(); // Limit history to 10 steps for performance
+            }
+            localStorage.setItem('editorState', JSON.stringify({ history, currentStep, mediaType }));
         }
-        function undo() { if (currentStep > 0) { currentStep--; const state = history[currentStep]; const imgState = new Image(); imgState.src = state.data; imgState.onload = () => { ctx.drawImage(imgState, 0, 0); textOverlays = state.textOverlays; redrawText(); }; } }
-        function redo() { if (currentStep < history.length - 1) { currentStep++; const state = history[currentStep]; const imgState = new Image(); imgState.src = state.data; imgState.onload = () => { ctx.drawImage(imgState, 0, 0); textOverlays = state.textOverlays; redrawText(); }; } }
-        function reset() { if (mediaType === 'image') { ctx.filter = 'none'; ctx.drawImage(img, 0, 0); textOverlays = []; redrawText(); saveState(); } else { video.style.filter = 'none'; video.style.transform = 'none'; video.playbackRate = 1; video.muted = false; saveState(); } }
+
+        function undo() {
+            if (isProcessing || currentStep <= 0) return;
+            isProcessing = true;
+            requestAnimationFrame(() => {
+                currentStep--;
+                const state = history[currentStep];
+                const imgState = new Image();
+                imgState.src = state.data;
+                imgState.onload = () => {
+                    canvas.width = imgState.width; canvas.height = imgState.height;
+                    ctx.drawImage(imgState, 0, 0); textOverlays = state.textOverlays; redrawText();
+                    isProcessing = false;
+                };
+            });
+        }
+
+        function redo() {
+            if (isProcessing || currentStep >= history.length - 1) return;
+            isProcessing = true;
+            requestAnimationFrame(() => {
+                currentStep++;
+                const state = history[currentStep];
+                const imgState = new Image();
+                imgState.src = state.data;
+                imgState.onload = () => {
+                    canvas.width = imgState.width; canvas.height = imgState.height;
+                    ctx.drawImage(imgState, 0, 0); textOverlays = state.textOverlays; redrawText();
+                    isProcessing = false;
+                };
+            });
+        }
+
+        function reset() {
+            if (isProcessing) return;
+            isProcessing = true;
+            requestAnimationFrame(() => {
+     if (mediaType === 'image') {
+                    ctx.filter = 'none'; ctx.drawImage(img, 0, 0); textOverlays = [];
+                    redrawCanvas(); saveState();
+                } else {
+                    video.style.filter = 'none'; video.style.transform = 'none'; video.playbackRate = 1; video.muted = false; saveState();
+                }
+                isProcessing = false;
+            });
+        }
     </script>
 </body>
 </html>
