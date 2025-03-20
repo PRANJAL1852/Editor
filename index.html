@@ -2,36 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WorldEdit Elite</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1); color: #fff; height: 100vh; overflow: hidden; }
-        .container { height: 100vh; display: flex; flex-direction: column; animation: bgShift 10s infinite alternate; }
-        @keyframes bgShift { 0% { background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1); } 50% { background: linear-gradient(135deg, #f94144, #f3722c, #f8961e); } 100% { background: linear-gradient(135deg, #90be6d, #43aa8b, #577590); } }
-        .media-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.5); border-radius: 20px; margin: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
-        canvas, video { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 15px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        canvas:hover, video:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
-        .navbar { position: fixed; bottom: 10px; width: calc(100% - 20px); background: rgba(255, 255, 255, 0.1); padding: 15px; display: flex; overflow-x: auto; gap: 10px; border-radius: 25px; backdrop-filter: blur(10px); box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2); }
-        .tool-btn { padding: 10px 20px; background: linear-gradient(45deg, #ff0066, #00ccff); border: none; color: #fff; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: bold; transition: all 0.3s ease; text-transform: uppercase; }
-        .tool-btn:hover { transform: scale(1.1); background: linear-gradient(45deg, #00ccff, #ff0066); box-shadow: 0 0 15px rgba(255, 255, 255, 0.7); }
-        .controls { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
-        .controls button, .controls select { padding: 10px 15px; background: linear-gradient(45deg, #f9c74f, #f8961e); border: none; color: #fff; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
-        .controls button:hover { background: linear-gradient(45deg, #f8961e, #f9c74f); transform: scale(1.05); }
-        input[type="file"] { position: absolute; top: 15px; left: 15px; padding: 10px; background: linear-gradient(45deg, #90be6d, #43aa8b); border-radius: 10px; color: #fff; cursor: pointer; }
-        .slider { display: none; position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 15px; width: 300px; text-align: center; backdrop-filter: blur(5px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
-        .slider label { font-size: 14px; color: #fff; margin-bottom: 5px; display: block; }
-        .slider input[type="range"] { width: 100%; accent-color: #ff0066; }
-        .text-overlay { position: absolute; cursor: move; padding: 8px; background: rgba(0, 0, 0, 0.6); border-radius: 8px; color: #fff; font-size: 20px; box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+        body { background: linear-gradient(135deg, #ff4e50, #f9d423, #4facfe); height: 100vh; overflow: hidden; color: #fff; font-size: 14px; }
+        .container { height: 100vh; display: flex; flex-direction: column; animation: bgPulse 8s infinite alternate; }
+        @keyframes bgPulse { 0% { background: linear-gradient(135deg, #ff4e50, #f9d423, #4facfe); } 50% { background: linear-gradient(135deg, #00dbde, #fc00ff, #82ff47); } 100% { background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fad0c4); } }
+        .media-container { flex: 1; display: flex; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.4); margin: 5px; border-radius: 15px; position: relative; }
+        canvas, video { width: 100%; height: auto; max-height: 70vh; object-fit: contain; border-radius: 10px; transition: transform 0.3s ease; }
+        canvas:hover, video:hover { transform: scale(1.03); }
+        .top-bar { position: fixed; top: 0; width: 100%; background: rgba(255, 255, 255, 0.15); padding: 5px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(8px); z-index: 10; }
+        .top-bar input[type="file"] { padding: 5px; background: linear-gradient(45deg, #ff9a9e, #fad0c4); border-radius: 8px; font-size: 12px; }
+        .controls { display: flex; gap: 5px; }
+        .controls button, .controls select { padding: 5px 10px; background: linear-gradient(45deg, #4facfe, #00f2fe); border: none; color: #fff; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; }
+        .controls button:hover { background: linear-gradient(45deg, #00f2fe, #4facfe); transform: scale(1.05); }
+        .navbar { position: fixed; bottom: 0; width: 100%; background: rgba(255, 255, 255, 0.1); padding: 10px; display: flex; overflow-x: auto; gap: 8px; border-radius: 15px 15px 0 0; backdrop-filter: blur(10px); box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.2); }
+        .tool-btn { padding: 8px 15px; background: linear-gradient(45deg, #fc00ff, #00dbde); border: none; color: #fff; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; white-space: nowrap; }
+        .tool-btn:hover { background: linear-gradient(45deg, #00dbde, #fc00ff); transform: scale(1.1); box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        .slider { display: none; position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 10px; width: 90%; max-width: 300px; text-align: center; backdrop-filter: blur(5px); z-index: 5; }
+        .slider label { font-size: 12px; color: #fff; margin-bottom: 5px; display: block; }
+        .slider input[type="range"] { width: 100%; accent-color: #fc00ff; }
+        .text-overlay { position: absolute; cursor: move; padding: 5px; background: rgba(0, 0, 0, 0.6); border-radius: 5px; color: #fff; font-size: 16px; z-index: 2; box-shadow: 0 0 8px rgba(255, 255, 255, 0.3); }
+        @media (max-width: 600px) { .navbar { padding: 5px; gap: 5px; } .tool-btn { padding: 6px 12px; font-size: 10px; } .top-bar { padding: 3px; } .controls button, .controls select { padding: 4px 8px; font-size: 10px; } }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <div class="media-container">
+        <div class="top-bar">
             <input type="file" id="mediaUpload" accept="image/*,video/*">
-            <canvas id="canvas" style="display: none;"></canvas>
-            <video id="video" controls style="display: none;"></video>
             <div class="controls">
                 <button onclick="saveMedia()">Save</button>
                 <select id="saveFormat">
@@ -43,6 +43,10 @@
                 <button onclick="redo()">Redo</button>
                 <button onclick="reset()">Reset</button>
             </div>
+        </div>
+        <div class="media-container">
+            <canvas id="canvas" style="display: none;"></canvas>
+            <video id="video" controls style="display: none;"></video>
             <div class="slider" id="slider"><label id="sliderLabel"></label><input type="range" id="range" oninput="applySlider(this.dataset.tool, this.value)"></div>
         </div>
         <div class="navbar">
@@ -55,7 +59,6 @@
             <button class="tool-btn" onclick="showSlider('brightness', 'Brightness', 0, 200, 100)">Brightness</button>
             <button class="tool-btn" onclick="showSlider('saturation', 'Saturation', 0, 200, 100)">Saturation</button>
             <button class="tool-btn" onclick="rotate(90)">Rotate 90°</button>
-            <button class="tool-btn" onclick="rotate(-90)">Rotate -90°</button>
             <button class="tool-btn" onclick="flip('horizontal')">Flip H</button>
             <button class="tool-btn" onclick="flip('vertical')">Flip V</button>
             <button class="tool-btn" onclick="showSlider('crop', 'Crop (%)', 10, 100, 100)">Crop</button>
@@ -139,23 +142,36 @@
         function addText() {
             if (mediaType !== 'image') return;
             const text = prompt('Enter text:', 'Text') || 'Text';
-            const overlay = { text, x: 50, y: 50 };
+            const overlay = { text, x: 20, y: 40 };
             textOverlays.push(overlay); redrawCanvas(); makeTextDraggable(overlay); saveState();
         }
         function redrawCanvas() { ctx.drawImage(img, 0, 0); redrawText(); }
-        function redrawText() { textOverlays.forEach(o => { ctx.font = '30px Poppins'; ctx.fillStyle = '#fff'; ctx.fillText(o.text, o.x, o.y); }); }
+        function redrawText() { textOverlays.forEach(o => { ctx.font = '20px Poppins'; ctx.fillStyle = '#fff'; ctx.fillText(o.text, o.x, o.y); }); }
         function makeTextDraggable(overlay) {
             const div = document.createElement('div');
             div.className = 'text-overlay'; div.textContent = overlay.text;
-            div.style.left = `${overlay.x}px`; div.style.top = `${overlay.y - 30}px`;
+            div.style.left = `${overlay.x}px`; div.style.top = `${overlay.y - 20}px`;
             document.querySelector('.media-container').appendChild(div);
             let isDragging = false, startX, startY;
-            div.onmousedown = (e) => { isDragging = true; startX = e.clientX - overlay.x; startY = e.clientY - overlay.y; };
-            document.onmousemove = (e) => { if (isDragging) { overlay.x = e.clientX - startX; overlay.y = e.clientY - startY; div.style.left = `${overlay.x}px`; div.style.top = `${overlay.y - 30}px`; redrawCanvas(); } };
-            document.onmouseup = () => { isDragging = false; saveState(); };
+            div.ontouchstart = div.onmousedown = (e) => {
+                isDragging = true; 
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                startX = clientX - overlay.x; startY = clientY - overlay.y;
+            };
+            document.ontouchmove = document.onmousemove = (e) => {
+                if (isDragging) {
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    overlay.x = clientX - startX; overlay.y = clientY - startY;
+                    div.style.left = `${overlay.x}px`; div.style.top = `${overlay.y - 20}px`;
+                    redrawCanvas();
+                }
+            };
+            document.ontouchend = document.onmouseup = () => { isDragging = false; saveState(); };
         }
         function sharpen() { if (mediaType === 'image') { ctx.filter = 'contrast(150%)'; redrawCanvas(); saveState(); } }
-        function addBorder() { if (mediaType === 'image') { ctx.strokeStyle = '#fff'; ctx.lineWidth = 10; ctx.strokeRect(0, 0, canvas.width, canvas.height); redrawText(); saveState(); } }
+        function addBorder() { if (mediaType === 'image') { ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.strokeRect(0, 0, canvas.width, canvas.height); redrawText(); saveState(); } }
         function vignette() { if (mediaType === 'image') { ctx.filter = 'brightness(50%) contrast(120%)'; redrawCanvas(); saveState(); } }
         function posterize() { if (mediaType === 'image') { ctx.filter = 'contrast(200%) brightness(80%)'; redrawCanvas(); saveState(); } }
         function noise() { if (mediaType === 'image') { ctx.filter = 'contrast(110%) brightness(90%)'; redrawCanvas(); saveState(); } }
@@ -194,4 +210,4 @@
         function reset() { if (mediaType === 'image') { ctx.filter = 'none'; ctx.drawImage(img, 0, 0); textOverlays = []; redrawText(); saveState(); } else { video.style.filter = 'none'; video.style.transform = 'none'; video.playbackRate = 1; video.muted = false; saveState(); } }
     </script>
 </body>
-                </html>
+</html>
