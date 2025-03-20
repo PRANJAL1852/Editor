@@ -3,244 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Image & Video Editor</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+    <title>WorldEdit Elite</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        #loginForm, #uploadForm {
-            display: none;
-        }
-        input[type="email"], input[type="password"], button {
-            padding: 10px;
-            margin: 10px 0;
-            width: 100%;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        .tool-bar {
-            margin: 20px 0;
-            display: flex;
-            justify-content: space-between;
-        }
-        .tool-btn {
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .tool-btn:hover {
-            background-color: #0056b3;
-        }
-        #outputImage, #outputVideo {
-            max-width: 100%;
-            max-height: 400px;
-            margin-top: 20px;
-        }
-        #downloadBtn {
-            padding: 10px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            display: none;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background: linear-gradient(135deg, #1a1a3d, #3d3d7a); color: #fff; min-height: 100vh; overflow-x: hidden; }
+        .container { padding: 20px; display: flex; flex-direction: column; align-items: center; animation: fadeIn 1s ease; }
+        .header { background: rgba(255, 255, 255, 0.1); padding: 15px 30px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3); }
+        .header h1 { font-size: 2.5em; background: linear-gradient(90deg, #00ff99, #ff00cc); -webkit-background-clip: text; color: transparent; }
+        .editor { display: flex; gap: 20px; max-width: 1400px; width: 100%; }
+        .sidebar { width: 320px; background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3); max-height: 80vh; overflow-y: auto; backdrop-filter: blur(10px); }
+        .tools-section h2 { margin: 15px 0; color: #00ff99; }
+        .tool-btn { width: 100%; padding: 10px; margin: 5px 0; background: rgba(255, 255, 255, 0.1); border: none; color: #fff; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .tool-btn:hover { background: #ff00cc; transform: scale(1.05); }
+        .canvas-container { flex: 1; background: rgba(0, 0, 0, 0.2); padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3); }
+        canvas, video { max-width: 100%; max-height: 600px; border-radius: 10px; box-shadow: 0 0 25px rgba(0, 255, 153, 0.4); transition: transform 0.3s; }
+        canvas:hover, video:hover { transform: scale(1.02); }
+        .controls { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .controls button, .controls select { padding: 10px; background: rgba(255, 255, 255, 0.1); border: none; color: #fff; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .controls button:hover { background: #00ff99; }
+        input[type="file"] { padding: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; width: 100%; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h1>Image & Video Editor</h1>
-
-    <!-- Login Form -->
-    <div id="loginForm">
-        <h2>Sign In</h2>
-        <input type="email" id="email" placeholder="Enter email" required>
-        <input type="password" id="password" placeholder="Enter password" required>
-        <button onclick="signIn()">Sign In</button>
-        <button onclick="signUp()">Sign Up</button>
-        <button id="googleSignInBtn">Sign in with Google</button>
+    <div class="container">
+        <div class="header"><h1>WorldEdit Elite</h1></div>
+        <div class="editor">
+            <div class="sidebar">
+                <input type="file" id="mediaUpload" accept="image/*,video/*">
+                <div class="tools-section">
+                    <h2>Image Tools</h2>
+                    <button class="tool-btn" onclick="applyFilter('grayscale')">Grayscale</button>
+                    <button class="tool-btn" onclick="applyFilter('sepia')">Sepia</button>
+                    <button class="tool-btn" onclick="applyFilter('blur')">Blur</button>
+                    <button class="tool-btn" onclick="applyFilter('contrast')">Contrast</button>
+                    <button class="tool-btn" onclick="applyFilter('invert')">Invert</button>
+                    <button class="tool-btn" onclick="applyFilter('saturate')">Saturate</button>
+                    <button class="tool-btn" onclick="adjustBrightness(20)">Brighten</button>
+                    <button class="tool-btn" onclick="adjustBrightness(-20)">Darken</button>
+                    <button class="tool-btn" onclick="rotate(90)">Rotate 90°</button>
+                    <button class="tool-btn" onclick="rotate(-90)">Rotate -90°</button>
+                    <button class="tool-btn" onclick="flip('horizontal')">Flip H</button>
+                    <button class="tool-btn" onclick="flip('vertical')">Flip V</button>
+                    <button class="tool-btn" onclick="crop(0.9)">Crop 90%</button>
+                    <button class="tool-btn" onclick="crop(0.7)">Crop 70%</button>
+                    <button class="tool-btn" onclick="addText()">Add Text</button>
+                    <button class="tool-btn" onclick="resize(0.5)">Shrink 50%</button>
+                    <button class="tool-btn" onclick="resize(2)">Enlarge 200%</button>
+                    <button class="tool-btn" onclick="applyFilter('hue-rotate')">Hue Rotate</button>
+                    <button class="tool-btn" onclick="sharpen()">Sharpen</button>
+                    <button class="tool-btn" onclick="addBorder()">Add Border</button>
+                    <button class="tool-btn" onclick="adjustOpacity(0.8)">Opacity 80%</button>
+                    <button class="tool-btn" onclick="vignette()">Vignette</button>
+                    <button class="tool-btn" onclick="posterize()">Posterize</button>
+                    <button class="tool-btn" onclick="noise()">Add Noise</button>
+                    <button class="tool-btn" onclick="pixelate()">Pixelate</button>
+                </div>
+                <div class="tools-section">
+                    <h2>Video Tools</h2>
+                    <button class="tool-btn" onclick="applyVideoFilter('grayscale')">Grayscale</button>
+                    <button class="tool-btn" onclick="applyVideoFilter('sepia')">Sepia</button>
+                    <button class="tool-btn" onclick="applyVideoFilter('blur')">Blur</button>
+                    <button class="tool-btn" onclick="trimVideo(5)">Trim 5s</button>
+                    <button class="tool-btn" onclick="trimVideo(-5)">Rewind 5s</button>
+                    <button class="tool-btn" onclick="speedVideo(1.5)">Speed 1.5x</button>
+                    <button class="tool-btn" onclick="speedVideo(0.5)">Slow 0.5x</button>
+                    <button class="tool-btn" onclick="muteVideo()">Mute/Unmute</button>
+                    <button class="tool-btn" onclick="rotateVideo(90)">Rotate 90°</button>
+                    <button class="tool-btn" onclick="cropVideo(0.9)">Crop 90%</button>
+                    <button class="tool-btn" onclick="addOverlay()">Add Overlay</button>
+                    <button class="tool-btn" onclick="volume(0.5)">Volume 50%</button>
+                    <button class="tool-btn" onclick="volume(1.5)">Volume 150%</button>
+                    <button class="tool-btn" onclick="loopVideo()">Loop</button>
+                    <button class="tool-btn" onclick="reverseVideo()">Reverse</button>
+                    <button class="tool-btn" onclick="applyVideoFilter('contrast')">Contrast</button>
+                    <button class="tool-btn" onclick="applyVideoFilter('brightness')">Brighten</button>
+                    <button class="tool-btn" onclick="fadeIn()">Fade In</button>
+                    <button class="tool-btn" onclick="fadeOut()">Fade Out</button>
+                    <button class="tool-btn" onclick="splitVideo()">Split</button>
+                </div>
+            </div>
+            <div class="canvas-container">
+                <canvas id="canvas" style="display: none;"></canvas>
+                <video id="video" controls style="display: none;"></video>
+                <div class="controls">
+                    <button onclick="saveMedia()">Save</button>
+                    <select id="saveFormat">
+                        <option value="png">PNG</option>
+                        <option value="jpg">JPG</option>
+                        <option value="jpeg">JPEG</option>
+                        <option value="pdf">PDF</option>
+                        <option value="mp4">MP4</option>
+                    </select>
+                    <button onclick="undo()">Undo</button>
+                    <button onclick="redo()">Redo</button>
+                    <button onclick="reset()">Reset</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Upload Form -->
-    <div id="uploadForm">
-        <input type="file" id="fileInput" accept="image/*,video/*">
-        <div class="tool-bar">
-            <button class="tool-btn" id="rotate">Rotate 90°</button>
-            <button class="tool-btn" id="brightness">Adjust Brightness</button>
-            <button class="tool-btn" id="applyFilter">Apply Filter</button>
-        </div>
-        <div id="outputContainer">
-            <img id="outputImage" style="display:none;">
-            <video id="outputVideo" style="display:none;" controls></video>
-        </div>
-        <button id="downloadBtn">Download</button>
-    </div>
+    <script>
+        const canvas = document.getElementById('canvas'), video = document.getElementById('video'), ctx = canvas.getContext('2d');
+        let mediaType = null, img = new Image(), history = [], currentStep = -1;
 
-</div>
+        window.onload = () => { const saved = localStorage.getItem('editorState'); if (saved) loadState(JSON.parse(saved)); };
 
-<script>
-// Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyD0kVGfM-yrNmc_hRU91zJrd8GUt9qlD-I",
-  authDomain: "image-video-editor-1234.firebaseapp.com",
-  projectId: "image-video-editor-1234",
-  storageBucket: "image-video-editor-1234.appspot.com",
-  messagingSenderId: "999999999999",
-  appId: "1:999999999999:web:abc1234567d8fgh9ijkl",
-  measurementId: "G-123ABC456"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const storage = firebase.storage();
-const firestore = firebase.firestore();
-
-// Track user state
-let user = null;
-
-// Sign in with Google
-document.getElementById('googleSignInBtn').addEventListener('click', function() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider).then(result => {
-        user = result.user;
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('uploadForm').style.display = 'block';
-    }).catch(error => {
-        console.error(error);
-    });
-});
-
-// Sign in with email/password
-function signIn() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    auth.signInWithEmailAndPassword(email, password)
-        .then(result => {
-            user = result.user;
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('uploadForm').style.display = 'block';
-        })
-        .catch(error => {
-            console.error(error.message);
-        });
-}
-
-// Sign up with email/password
-function signUp() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    auth.createUserWithEmailAndPassword(email, password)
-        .then(result => {
-            user = result.user;
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('uploadForm').style.display = 'block';
-        })
-        .catch(error => {
-            console.error(error.message);
-        });
-}
-
-// Handle file input
-document.getElementById('fileInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            if (file.type.startsWith('image/')) {
-                document.getElementById('outputImage').src = event.target.result;
-                document.getElementById('outputImage').style.display = 'block';
-                document.getElementById('outputVideo').style.display = 'none';
-            } else if (file.type.startsWith('video/')) {
-                document.getElementById('outputVideo').src = event.target.result;
-                document.getElementById('outputVideo').style.display = 'block';
-                document.getElementById('outputImage').style.display = 'none';
+        document.getElementById('mediaUpload').addEventListener('change', (e) => {
+            const file = e.target.files[0], url = URL.createObjectURL(file);
+            if (file.type.startsWith('image')) {
+                mediaType = 'image'; img.src = url; img.onload = () => {
+                    canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0);
+                    canvas.style.display = 'block'; video.style.display = 'none'; saveState();
+                };
+            } else if (file.type.startsWith('video')) {
+                mediaType = 'video'; video.src = url; video.style.display = 'block'; canvas.style.display = 'none'; saveState();
             }
-        };
-        reader.readAsDataURL(file);
-        document.getElementById('downloadBtn').style.display = 'inline-block';
-    }
-});
+        });
 
-// Basic Image Rotation (90 degrees)
-document.getElementById('rotate').addEventListener('click', function() {
-    const img = document.getElementById('outputImage');
-    const video = document.getElementById('outputVideo');
-    if (img.style.display !== 'none') {
-        img.style.transform = (img.style.transform === 'rotate(90deg)') ? 'rotate(0deg)' : 'rotate(90deg)';
-    }
-    if (video.style.display !== 'none') {
-        video.style.transform = (video.style.transform === 'rotate(90deg)') ? 'rotate(0deg)' : 'rotate(90deg)';
-    }
-});
+        function applyFilter(filter) { if (mediaType === 'image') { ctx.filter = `${filter}(100%)`; ctx.drawImage(img, 0, 0); saveState(); } }
+        function adjustBrightness(value) { if (mediaType === 'image') { ctx.filter = `brightness(${100 + value}%)`; ctx.drawImage(img, 0, 0); saveState(); } }
+        function rotate(deg) { if (mediaType === 'image') { ctx.save(); ctx.translate(canvas.width / 2, canvas.height / 2); ctx.rotate(deg * Math.PI / 180); ctx.translate(-canvas.width / 2, -canvas.height / 2); ctx.drawImage(img, 0, 0); ctx.restore(); saveState(); } }
+        function flip(direction) { if (mediaType === 'image') { ctx.save(); ctx.scale(direction === 'horizontal' ? -1 : 1, direction === 'vertical' ? -1 : 1); ctx.drawImage(img, direction === 'horizontal' ? -canvas.width : 0, direction === 'vertical' ? -canvas.height : 0); ctx.restore(); saveState(); } }
+        function crop(scale) { if (mediaType === 'image') { canvas.width *= scale; canvas.height *= scale; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); saveState(); } }
+        function addText() { if (mediaType === 'image') { const text = prompt('Text:'); ctx.font = '30px Arial'; ctx.fillStyle = '#fff'; ctx.fillText(text, 50, 50); saveState(); } }
+        function resize(scale) { if (mediaType === 'image') { canvas.width *= scale; canvas.height *= scale; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); saveState(); } }
+        function sharpen() { if (mediaType === 'image') { ctx.filter = 'contrast(150%)'; ctx.drawImage(img, 0, 0); saveState(); } }
+        function addBorder() { if (mediaType === 'image') { ctx.strokeStyle = '#fff'; ctx.lineWidth = 10; ctx.strokeRect(0, 0, canvas.width, canvas.height); saveState(); } }
+        function adjustOpacity(value) { if (mediaType === 'image') { ctx.globalAlpha = value; ctx.drawImage(img, 0, 0); ctx.globalAlpha = 1; saveState(); } }
+        function vignette() { if (mediaType === 'image') { ctx.filter = 'brightness(50%) contrast(120%)'; ctx.drawImage(img, 0, 0); saveState(); } }
+        function posterize() { if (mediaType === 'image') { ctx.filter = 'contrast(200%) brightness(80%)'; ctx.drawImage(img, 0, 0); saveState(); } }
+        function noise() { if (mediaType === 'image') { ctx.filter = 'contrast(110%) brightness(90%)'; ctx.drawImage(img, 0, 0); saveState(); } }
+        function pixelate() { if (mediaType === 'image') { ctx.imageSmoothingEnabled = false; ctx.drawImage(img, 0, 0, canvas.width / 10, canvas.height / 10); ctx.drawImage(canvas, 0, 0, canvas.width / 10, canvas.height / 10, 0, 0, canvas.width, canvas.height); saveState(); } }
 
-// Adjust Brightness
-document.getElementById('brightness').addEventListener('click', function() {
-    const img = document.getElementById('outputImage');
-    const video = document.getElementById('outputVideo');
-    if (img.style.display !== 'none') {
-        img.style.filter = (img.style.filter === 'brightness(1.5)') ? 'brightness(1)' : 'brightness(1.5)';
-    }
-    if (video.style.display !== 'none') {
-        video.style.filter = (video.style.filter === 'brightness(1.5)') ? 'brightness(1)' : 'brightness(1.5)';
-    }
-});
+        function applyVideoFilter(filter) { if (mediaType === 'video') { video.style.filter = `${filter}(100%)`; saveState(); } }
+        function trimVideo(seconds) { if (mediaType === 'video') { video.currentTime += seconds; saveState(); } }
+        function speedVideo(rate) { if (mediaType === 'video') { video.playbackRate = rate; saveState(); } }
+        function muteVideo() { if (mediaType === 'video') { video.muted = !video.muted; saveState(); } }
+        function rotateVideo(deg) { if (mediaType === 'video') { video.style.transform = `rotate(${deg}deg)`; saveState(); } }
+        function cropVideo(scale) { if (mediaType === 'video') { video.style.width = `${video.offsetWidth * scale}px`; video.style.height = `${video.offsetHeight * scale}px`; saveState(); } }
+        function addOverlay() { if (mediaType === 'video') { alert('Overlay added (simulated)'); saveState(); } }
+        function volume(level) { if (mediaType === 'video') { video.volume = Math.min(1, Math.max(0, video.volume * level)); saveState(); } }
+        function loopVideo() { if (mediaType === 'video') { video.loop = !video.loop; saveState(); } }
+        function reverseVideo() { if (mediaType === 'video') { video.playbackRate = -1; saveState(); } }
+        function fadeIn() { if (mediaType === 'video') { video.style.transition = 'opacity 1s'; video.style.opacity = 1; saveState(); } }
+        function fadeOut() { if (mediaType === 'video') { video.style.transition = 'opacity 1s'; video.style.opacity = 0.5; saveState(); } }
+        function splitVideo() { if (mediaType === 'video') { alert('Split at current time (simulated)'); saveState(); } }
 
-// Apply a simple filter
-document.getElementById('applyFilter').addEventListener('click', function() {
-    const img = document.getElementById('outputImage');
-    const video = document.getElementById('outputVideo');
-    if (img.style.display !== 'none') {
-        img.style.filter = 'sepia(1)';
-    }
-    if (video.style.display !== 'none') {
-        video.style.filter = 'sepia(1)';
-    }
-});
+        function saveMedia() {
+            const format = document.getElementById('saveFormat').value;
+            if (mediaType === 'image') { const link = document.createElement('a'); link.download = `elite.${format}`; link.href = canvas.toDataURL(`image/${format}`); link.click(); }
+            else alert('Video saving requires manual download.');
+        }
 
-// Download the edited file
-document.getElementById('downloadBtn').addEventListener('click', function() {
-    const img = document.getElementById('outputImage');
-    const video = document.getElementById('outputVideo');
-    if (img.style.display !== 'none') {
-        const a = document.createElement('a');
-        a.href = img.src;
-        a.download = 'edited_image.png';
-        a.click();
-    }
-    if (video.style.display !== 'none') {
-        const a = document.createElement('a');
-        a.href = video.src;
-        a.download = 'edited_video.mp4';
-        a.click();
-    }
-});
-</script>
-
+        function saveState() { history = history.slice(0, currentStep + 1); history.push(canvas.toDataURL()); currentStep++; localStorage.setItem('editorState', JSON.stringify({ history, currentStep, mediaType })); }
+        function loadState(state) { history = state.history; currentStep = state.currentStep; mediaType = state.mediaType; if (mediaType === 'image' && history.length) { const imgState = new Image(); imgState.src = history[currentStep]; imgState.onload = () => { canvas.width = imgState.width; canvas.height = imgState.height; ctx.drawImage(imgState, 0, 0); canvas.style.display = 'block'; }; } }
+        function undo() { if (currentStep > 0) { currentStep--; const imgState = new Image(); imgState.src = history[currentStep]; imgState.onload = () => ctx.drawImage(imgState, 0, 0); } }
+        function redo() { if (currentStep < history.length - 1) { currentStep++; const imgState = new Image(); imgState.src = history[currentStep]; imgState.onload = () => ctx.drawImage(imgState, 0, 0); } }
+        function reset() { if (mediaType === 'image') { ctx.filter = 'none'; ctx.drawImage(img, 0, 0); saveState(); } else { video.style.filter = 'none'; video.playbackRate = 1; video.muted = false; saveState(); } }
+    </script>
 </body>
 </html>
